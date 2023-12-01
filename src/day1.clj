@@ -3,60 +3,56 @@
    [clojure.string :as str]))
 
 (def day1-input
-  (->> (slurp "/home/oleg/dev/aocClj2023/src/day1.clj/day1")
-       (str/split-lines)
-       (map #(re-seq #"\d" %))))
+  (->> (slurp "src/day1")
+       (str/split-lines)))
 
-(def day1-parttwo-input
-  (->> (slurp "/home/oleg/dev/aocClj2023/src/day1.clj/day1")
-       (str/split-lines)
-       (map #(re-seq #"(?:(one|two|three|four|five|six|seven|eight|nine)|(\d))" %))
-       (map flatten)
-       (map #(remove nil? %))))
-
-(def somemap {"one" "1"
-              "two" "2"
-              "three" "3"
-              "four" "4"
-              "five" "5"
-              "six" "6"
-              "seven" "7"
-              "eight" "8"
-              "nine" "9"
-              "zero" "0"})
+(def digits
+  {"one"   "1"
+   "two"   "2"
+   "three" "3"
+   "four"  "4"
+   "five"  "5"
+   "six"   "6"
+   "seven" "7"
+   "eight" "8"
+   "nine"  "9"})
 
 (defn to-int [x]
-  (if (not= nil (somemap x))
-    (somemap x)
-    x))
+  (if (not= nil (digits x))
+    (digits x) x))
+
+(def repattern-digits  
+  (map #(apply str %) (map reverse (keys digits))))
+
+(defn create-exp 
+  [dig]
+  (let [r (str "(" (str/join "|" dig) ")")]    
+    (re-pattern (str "(?:" r "|(\\d))"))))
+
+(def get-exp (create-exp (keys digits)))
+
+(def get-rev-exp (create-exp repattern-digits))
+
+(defn create-pair
+  [coll]
+  (let [fst  (ffirst (re-seq get-exp coll))
+        scnd (ffirst (re-seq get-rev-exp (apply str (reverse coll))))]
+    (list (to-int fst) (to-int (apply str (reverse scnd))))))
 
 (defn calc
   [coll]
-  (reduce (fn [acc x]
-            (+ acc (Integer/parseInt (str (first x) (last x))))
-            ;(spit "/home/oleg/dev/aocClj2023/src/day1.clj/test" (str (first x) (last x) "\n") :append true  )
-            )0 coll))
+  (reduce (fn [acc x]         
+            (+ acc (Integer/parseInt (str (first x) (last x))))) 0 coll))
 
-(defn day1-1step
+(defn day1-part-one
   [coll]
-  (calc coll))
+  (calc (map #(re-seq #"\d" %) coll)))
 
-(defn day-2part
+(defn day1-part-two
   [coll]
-  (calc (map #(map to-int %) coll)))
+  (calc (map create-pair coll)))
 
-(comment
-  (map #(map to-int %) day1-parttwo-input)
-  (Integer/parseInt "6548565485")
-  (vec day1-parttwo-input)
-  (map flatten day1-parttwo-input)
-  (day1-1step day1-input)
-  (spit "/home/oleg/dev/aocClj2023/src/day1.clj/test" (str/join "\n" (map vec day1-parttwo-input)))
-  (day-2part day1-parttwo-input))
-  
-
-    
-    
-
-
+(comment  
+  (day1-part-two day1-input)
+  (day1-part-one day1-input))
     
